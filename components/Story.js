@@ -1,13 +1,14 @@
-export default function Story({ img, username }) {
+import { PlusIcon } from '@heroicons/react/solid';
+export default function Story({ img, username, isUser }) {
   return (
-    <div>
+    <div className="relative cursor-pointer group">
       <img
-        className="rounded-full h-14 p-[1.5px] border-red-500 border-2 cursor-pointer hover:scale-110 transition-transform duration-200 ease-out"
+        className="h-14 rounded-full p-[1.5px] border-red-500 border-2 group-hover:scale-110 transition-transform duration-200 ease-out"
         src={img}
-        alt="img"
+        alt={username}
       />
-
-      <p className="text-sm truncate w-14">{username}</p>
+      {isUser && <PlusIcon className="absolute h-6 text-white top-4 left-4" />}
+      <p className="text-xs truncate w-14">{username}</p>
     </div>
   );
 }
