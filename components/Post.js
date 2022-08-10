@@ -1,3 +1,4 @@
+import Moment from 'react-moment';
 import {
   DotsHorizontalIcon,
   HeartIcon,
@@ -6,13 +7,34 @@ import {
   EmojiHappyIcon,
 } from '@heroicons/react/outline';
 import { useSession } from 'next-auth/react';
-import { useState } from 'react';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import {
+  addDoc,
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+} from 'firebase/firestore';
 import { db } from '../firebase';
 
 export default function Post({ img, userImg, caption, username, id }) {
   const { data: session } = useSession();
   const [comment, setComment] = useState('');
+  const [comments, setComments] = useState([]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      query(
+        collection(db, 'posts', id, 'comments'),
+        orderBy('timestamp', 'desc')
+      ),
+      (snapshot) => {
+        setComments(snapshot.docs);
+      }
+    );
+  }, [db, id]);
+
   async function sendComment(e) {
     e.preventDefault();
     const commentToSend = comment;
@@ -57,6 +79,22 @@ export default function Post({ img, userImg, caption, username, id }) {
         <span className="mr-2 font-bold">{username}</span>
         {caption}
       </p>
+      {comments.length > 0 && (
+        <div className="mx-10 overflow-y-scroll max-h-24 scrollbar-none">
+          {comments.map((comment) => (
+            <div className="flex items-center mb-2 space-x-2" key={comment.id}>
+              <img
+                className="object-cover rounded-full h-7"
+                src={comment.data().userImage}
+                alt="user-image"
+              />
+              <p className="font-semibold ">{comment.data().username}</p>
+              <p className="flex-1 truncate">{comment.data().comment}</p>
+              <Moment fromNow>{comment.data().timestamp?.toDate()}</Moment>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* input comments */}
       {session && (
